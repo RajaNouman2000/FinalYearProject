@@ -14,7 +14,7 @@ def sensor(request):
         # Assuming the sensor sends data in the request body as JSON
         data = request.POST.get('sensor_data')
 
-        return HttpResponse('data received')
+        return HttpResponse('data not received')
     elif request.method == 'GET':
         return HttpResponse('From GET method')
     else:
