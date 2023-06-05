@@ -17,9 +17,14 @@
       );
 
       console.log(socket);
-      socket.onmessage = function (e) {
+
+      socket.onopen = function () {
+        console.log("WebSocket connection established");
+      };
+
+      socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
-        console.log("Data: ", data);
+        console.log("Received data from ChatConsumer:", data);
       };
     </script>
   </body>

@@ -1,49 +1,33 @@
-import json
-import time
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+import json
 
 
 class ChatConsumer(WebsocketConsumer):
-
-    message = ['raja', 'nouman', 'bhatti', 'babar']
-
     def connect(self):
-        self.room_name = "test_consumer"
         self.room_group_name = "test_consumer_group"
+
+        # Join room group
         async_to_sync(self.channel_layer.group_add)(
-            self.room_name, self.room_group_name
+            self.room_group_name,
+            self.channel_name
         )
         self.accept()
 
+        # Send a connection message to the WebSocket client
         self.send(text_data=json.dumps({
             'type': 'connection_established',
             'message': 'Hello connected'
         }))
 
-        self.send_message_periodically()
-
-    def send_message(self, message):
-        self.send(text_data=json.dumps(message))
-
-    def send_message_periodically(self):
-        while True:
-            # Read the JSON file
-            with open('main/static/seismic_data.json', 'r') as file:
-                data = json.load(file)
-
-                # Loop through the key-value pairs in the JSON data
-                for key, value in data.items():
-                    # Send each key-value pair to the connected device
-                    self.send_message(json.dumps({key: value}))
-                    # Wait for 1 second between each key-value pair
-                    time.sleep(60)
-
     def disconnect(self, close_code):
+        # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name, self.channel_name
+            self.room_group_name,
+            self.channel_name
         )
 
+        # Send a disconnection message to the WebSocket client
         self.send(text_data=json.dumps({
             'type': 'connection_disconnected',
             'message': 'You are now disconnected'
@@ -51,6 +35,32 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        message = text_data_json.get("message")
 
-        self.send(text_data=json.dumps({"message": 'data received'}))
+        # Echo the received message back to the WebSocket client
+        self.send(text_data=json.dumps({
+            'type': 'data_received',
+            'message': f'Received data: {message}'
+        }))
+
+    def send_message(self, message):
+        # Send a message to the WebSocket client
+        print('Send a message to the WebSocket client')
+        self.send(text_data=json.dumps({
+            'type': 'message_from_view',
+            'message': message
+        }))
+
+    def data_received(self, event):
+        # Event handler for data_received type
+        print('Event handler for data_received type')
+        message = event['message']
+        print(message)
+        self.send_message(message)
+
+    def message_from_view(self, event):
+        # Event handler for message_from_view type
+        print('Event handler for data_received type')
+        message = event['message']
+        print(message)
+        self.send_message(message)

@@ -1,6 +1,9 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-# Create your views here.
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
 
 
 @csrf_exempt
@@ -12,10 +15,19 @@ def home(request):
 def sensor(request):
     if request.method == 'POST':
         # Assuming the sensor sends data in the request body as JSON
-        data = request.POST.get('sensor_data')
+        data = json.loads(request.body)
+        carts = data.get("carts")
 
-        return HttpResponse('data not received')
-    elif request.method == 'GET':
-        return HttpResponse('From GET method')
+        # Send data to ChatConsumer
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "test_consumer_group",
+            {
+                "type": "send_message",
+                "message": carts
+            }
+        )
+
+        return HttpResponse('Data received and sent to ChatConsumer')
     else:
         return HttpResponse('Method not allowed.', status=405)
