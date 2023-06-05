@@ -16,7 +16,7 @@ def sensor(request):
     if request.method == 'POST':
         # Assuming the sensor sends data in the request body as JSON
         data = json.loads(request.body)
-        carts = data.get("carts")
+        print(data)
 
         # Send data to ChatConsumer
         channel_layer = get_channel_layer()
@@ -24,7 +24,7 @@ def sensor(request):
             "test_consumer_group",
             {
                 "type": "send_message",
-                "message": carts
+                "message": data
             }
         )
 
