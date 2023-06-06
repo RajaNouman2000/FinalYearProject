@@ -13,20 +13,27 @@ def home(request):
 
 @csrf_exempt
 def sensor(request):
-    if request.method == 'POST':
-        # Assuming the sensor sends data in the request body as JSON
-        data = json.loads(request.body)
-        print(data)
+    global onemint  # Declare the variable as global
 
-        # Send data to ChatConsumer
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            "test_consumer_group",
-            {
-                "type": "send_message",
-                "message": data
-            }
-        )
+    if request.method == 'POST':
+        if 'onemint' not in globals():
+            onemint = []  # Initialize the variable if it doesn't exist
+
+        data = json.loads(request.body)
+        onemint.append(data)
+
+        if len(onemint) == 6000:
+            # Send data to ChatConsumer
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                "test_consumer_group",
+                {
+                    "type": "send_message",
+                    "message": data
+                }
+            )
+            print(onemint)
+            onemint = []
 
         return HttpResponse('Data received and sent to ChatConsumer')
     else:
