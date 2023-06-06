@@ -22,7 +22,7 @@ def sensor(request):
         data = json.loads(request.body)
         onemint.append(data)
 
-        if len(onemint) == 6000:
+        if len(onemint) == 100:
             # Send data to ChatConsumer
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
