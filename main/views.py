@@ -29,7 +29,7 @@ def sensor(request):
                 "test_consumer_group",
                 {
                     "type": "send_message",
-                    "message": data
+                    "message": onemint
                 }
             )
             print(onemint)
